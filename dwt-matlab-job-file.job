@@ -1,0 +1,53 @@
+#!/bin/sh
+#$ -N MYJOBNAME
+#$ -cwd
+#$ -q all.q
+#$ -pe smp 4
+#$ -l mf=20G
+
+basename=BASENAME
+
+# define all the file names
+num=${JOB_ID%%.*}
+recordname=fb-${basename}-${num}.txt
+
+# register the job
+echo "+++++++++++++++++++++++++++++" >> job.info
+date >> job.info
+echo $JOB_ID  $JOB_NAME $basename ${recordname} >> job.info
+
+# global register
+~/bin/write-to-runningfile.py $JOB_ID $JOB_NAME $basename ${recordname}
+~/bin/write-to-summary.py $JOB_ID $JOB_NAME $basename ${recordname} "begin"
+
+
+# job begin
+echo $JOB_ID $JOB_NAME $basename ${recordname} > ${recordname}
+date >> ${recordname}
+echo "hello" >> ${recordname}
+echo "===============================" >> ${recordname}
+module load matlab/2018a
+matlab -nodisplay -nosplash -r "BASENAME" >> ${recordname}
+echo "===============================" >> ${recordname}
+date >> ${recordname}
+echo "bye" >> ${recordname}
+
+# unregister job globally
+~/bin/write-to-summary.py $JOB_ID $JOB_NAME $basename ${recordname} "stop"
+~/bin/write-to-finish.py $JOB_ID $JOB_NAME $basename ${recordname}
+
+
+
+#  cleanup /tmp (if necessary)
+#
+
+#  leave a hint in the working dierctory
+#  that the job has comleted
+#
+touch job.done
+echo "-----------------------------" >> job.done
+date >> job.done
+echo $JOB_ID  $JOB_NAME $basename ${recordname} >> job.done
+echo "-----------------------------" >> job.info
+date >> job.info
+echo $JOB_ID  $JOB_NAME $basename ${recordname} >> job.info
